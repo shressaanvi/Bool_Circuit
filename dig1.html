@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOOL( ) CIRCUIT — Boolean Expression &amp; Circuit Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="#top">
+      <span class="logo-mark">BOOL<span class="logo-paren">(</span><span class="logo-dot">•</span><span class="logo-paren">)</span></span>
+      <span class="logo-text">CIRCUIT</span>
+    </a>
+
+    <!-- NAVBAR PLACEHOLDER — leaving this empty for now, will add nav items later -->
+    <nav class="navbar" aria-label="Primary">
+      <ul class="nav-list">
+        <!-- nav items go here later -->
+      </ul>
+    </nav>
+
+    <div class="topbar-actions">
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode" aria-pressed="false">
+        <span class="theme-toggle-track">
+          <span class="theme-toggle-thumb"></span>
+        </span>
+        <span class="theme-toggle-label" id="theme-toggle-label">Dark</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Truth tables · Minterms · Maxterms · Expressions</p>
+      <h1 class="hero-title">Feed it a function.<br>Get back the whole circuit.</h1>
+      <p class="hero-sub">
+        Enter a Boolean function any way you have it — a truth table, a list of minterms or
+        maxterms, or a raw expression. This tool simplifies it, draws the gate-level circuit,
+        and rebuilds it using only NAND gates and only NOR gates — then checks that all four
+        agree on every input row.
+      </p>
+    </div>
+    <svg class="hero-trace" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,30 H180 L210,10 H420 L450,50 H700 L730,10 H960 L990,50 H1200"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="1 10" stroke-linecap="round"/>
+      <circle cx="180" cy="30" r="4" fill="currentColor"/>
+      <circle cx="450" cy="50" r="4" fill="currentColor"/>
+      <circle cx="730" cy="10" r="4" fill="currentColor"/>
+      <circle cx="990" cy="50" r="4" fill="currentColor"/>
+    </svg>
+  </section>
+
+  <!-- ============ CONTROL PANEL ============ -->
+  <section class="panel-section" id="control-panel" aria-labelledby="control-heading">
+    <div class="chip-card chip-card--wide">
+      <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+
+      <div class="chip-card-head">
+        <span class="chip-index">01</span>
+        <h2 id="control-heading">Set up your input</h2>
+      </div>
+
+      <div class="control-grid">
+
+        <!-- Number of variables -->
+        <div class="control-field">
+          <label for="var-count">Number of variables</label>
+          <select id="var-count" name="var-count" class="select-input">
+            <option value="2">2 variables (A, B)</option>
+            <option value="3" selected>3 variables (A, B, C)</option>
+            <option value="4">4 variables (A, B, C, D)</option>
+            <option value="5">5 variables (A, B, C, D, E)</option>
+            <option value="6">6 variables (A, B, C, D, E, F)</option>
+          </select>
+          <p class="field-hint">This decides how many rows/inputs appear below.</p>
+        </div>
+
+        <!-- Input type -->
+        <div class="control-field">
+          <label for="input-type">Input method</label>
+          <select id="input-type" name="input-type" class="select-input">
+            <option value="expression" selected>Boolean expression</option>
+            <option value="truth-table">Truth table (fill in outputs)</option>
+            <option value="minterms">Minterms (Σm)</option>
+            <option value="maxterms">Maxterms (ΠM)</option>
+          </select>
+          <p class="field-hint">Switch anytime — your variable count carries over.</p>
+        </div>
+
+      </div>
+
+      <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ============ INPUT PANELS (one shown at a time, based on input-type) ============ -->
+  <section class="panel-section" id="input-section" aria-labelledby="input-heading">
+    <div class="section-heading-row">
+      <span class="chip-index">02</span>
+      <h2 id="input-heading" class="visually-hidden">Enter your function</h2>
+    </div>
+
+    <!-- Boolean expression input -->
+    <div class="chip-card input-panel" id="panel-expression" data-panel="expression">
+      <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+      <div class="chip-card-head">
+        <h3>Boolean expression</h3>
+        <span class="tag">e.g. A.B + A'.C + B.C'</span>
+      </div>
+
+      <label for="expression-input" class="visually-hidden">Boolean expression</label>
+      <input
+        type="text"
+        id="expression-input"
+        class="text-input mono"
+        placeholder="Type your expression here, e.g. A.B' + C.(A + B)"
+        autocomplete="off"
+      >
+      <p class="field-hint">
+        Use A, B, C… for variables, <code>+</code> for OR, <code>.</code> or juxtaposition for AND,
+        and <code>'</code> or an overline-style suffix for NOT.
+      </p>
+
+      <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+    </div>
+
+    <!-- Truth table input -->
+    <div class="chip-card input-panel is-hidden" id="panel-truth-table" data-panel="truth-table">
+      <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+      <div class="chip-card-head">
+        <h3>Truth table</h3>
+        <span class="tag">Fill in the output column</span>
+      </div>
+
+      <div class="table-scroll">
+        <table class="truth-table" id="truth-table-input">
+          <thead>
+            <tr>
+              <!-- variable header cells will be generated to match "Number of variables" -->
+              <th scope="col">A</th>
+              <th scope="col">B</th>
+              <th scope="col">C</th>
+              <th scope="col" class="th-output">F</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rows generated to match 2^n combinations; each row's output cell is an editable input/select (0, 1, or X) -->
+            <tr><td>0</td><td>0</td><td>0</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 0"></td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 1"></td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 2"></td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 3"></td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 4"></td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 5"></td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 6"></td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td><input type="text" class="cell-input" maxlength="1" inputmode="numeric" aria-label="Output for row 7"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="field-hint">Enter <code>0</code>, <code>1</code>, or <code>X</code> (don't-care) for each row.</p>
+
+      <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+    </div>
+
+    <!-- Minterms input -->
+    <div class="chip-card input-panel is-hidden" id="panel-minterms" data-panel="minterms">
+      <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+      <div class="chip-card-head">
+        <h3>Minterms</h3>
+        <span class="tag">Σm( … )</span>
+      </div>
+
+      <label for="minterms-input" class="visually-hidden">Minterm indices</label>
+      <input
+        type="text"
+        id="minterms-input"
+        class="text-input mono"
+        placeholder="e.g. 1, 3, 5, 6, 7"
+        autocomplete="off"
+      >
+      <label for="minterms-dontcare" class="field-label-secondary">Don't-care terms (optional)</label>
+      <input
+        type="text"
+        id="minterms-dontcare"
+        class="text-input mono"
+        placeholder="e.g. 2, 4"
+        autocomplete="off"
+      >
+      <p class="field-hint">Comma-separated decimal indices, each between 0 and 2ⁿ−1.</p>
+
+      <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+    </div>
+
+    <!-- Maxterms input -->
+    <div class="chip-card input-panel is-hidden" id="panel-maxterms" data-panel="maxterms">
+      <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+      <div class="chip-card-head">
+        <h3>Maxterms</h3>
+        <span class="tag">ΠM( … )</span>
+      </div>
+
+      <label for="maxterms-input" class="visually-hidden">Maxterm indices</label>
+      <input
+        type="text"
+        id="maxterms-input"
+        class="text-input mono"
+        placeholder="e.g. 0, 2, 4, 6"
+        autocomplete="off"
+      >
+      <label for="maxterms-dontcare" class="field-label-secondary">Don't-care terms (optional)</label>
+      <input
+        type="text"
+        id="maxterms-dontcare"
+        class="text-input mono"
+        placeholder="e.g. 1, 5"
+        autocomplete="off"
+      >
+      <p class="field-hint">Comma-separated decimal indices, each between 0 and 2ⁿ−1.</p>
+
+      <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+    </div>
+
+    <!-- Generate action — sits at the end of the input flow -->
+    <div class="generate-action">
+      <button id="generate-btn" class="btn btn-primary" type="button">
+        Generate circuit
+      </button>
+      <p class="field-hint">Runs simplification, gate diagrams &amp; verification.</p>
+    </div>
+
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section class="panel-section" id="results" aria-labelledby="results-heading">
+    <div class="section-heading-row">
+      <span class="chip-index">03</span>
+      <h2 id="results-heading">Results</h2>
+    </div>
+
+    <div class="results-grid">
+
+      <!-- Simplified expression -->
+      <div class="chip-card chip-card--wide" id="result-expression">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>Simplified expression</h3>
+        </div>
+        <div class="result-body">
+          <p class="placeholder-text">Your minimized Boolean expression will appear here.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+      <!-- Truth table output -->
+      <div class="chip-card chip-card--wide" id="result-truth-table">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>Truth table</h3>
+        </div>
+        <div class="result-body">
+          <p class="placeholder-text">The generated truth table will appear here.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+      <!-- Basic gate diagram -->
+      <div class="chip-card chip-card--wide" id="result-basic-gates">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>Logic gate implementation</h3>
+          <span class="tag">AND · OR · NOT</span>
+        </div>
+        <div class="result-body diagram-body">
+          <p class="placeholder-text">Circuit diagram using basic gates will appear here.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+      <!-- NAND-only circuit -->
+      <div class="chip-card chip-card--wide" id="result-nand">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>NAND-only circuit</h3>
+          <span class="tag">Universal gate</span>
+        </div>
+        <div class="result-body diagram-body">
+          <p class="placeholder-text">Circuit diagram using only NAND gates will appear here.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+      <!-- NOR-only circuit -->
+      <div class="chip-card chip-card--wide" id="result-nor">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>NOR-only circuit</h3>
+          <span class="tag">Universal gate</span>
+        </div>
+        <div class="result-body diagram-body">
+          <p class="placeholder-text">Circuit diagram using only NOR gates will appear here.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+      <!-- Verification -->
+      <div class="chip-card" id="result-verification">
+        <div class="chip-pins chip-pins--top" aria-hidden="true"></div>
+        <div class="chip-card-head">
+          <h3>Verification</h3>
+          <span class="tag">All rows must match</span>
+        </div>
+        <div class="result-body">
+          <ul class="verify-list">
+            <li class="verify-item" data-status="pending">
+              <span class="verify-dot" aria-hidden="true"></span>
+              Original expression
+            </li>
+            <li class="verify-item" data-status="pending">
+              <span class="verify-dot" aria-hidden="true"></span>
+              Simplified expression
+            </li>
+            <li class="verify-item" data-status="pending">
+              <span class="verify-dot" aria-hidden="true"></span>
+              NAND-only circuit
+            </li>
+            <li class="verify-item" data-status="pending">
+              <span class="verify-dot" aria-hidden="true"></span>
+              NOR-only circuit
+            </li>
+          </ul>
+          <p class="placeholder-text">Run "Generate circuit" to check that all four agree on every input row.</p>
+        </div>
+        <div class="chip-pins chip-pins--bottom" aria-hidden="true"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-mark">BOOL<span class="logo-paren">(</span><span class="logo-dot">•</span><span class="logo-paren">)</span></span>
+      <span class="logo-text">CIRCUIT</span>
+      <p class="footer-tagline">Truth tables in, circuits out.</p>
+    </div>
+
+    <!-- GROUP INFO PLACEHOLDER — replace with your group's details -->
+    <div class="footer-group">
+      <h4>Project group</h4>
+      <p>Group name: <span class="fill-me"> Group 9 </span></p>
+      <p>Members: </p>
+      <p>
+        <span class="fill-me">(CS25BTECH11045) Peddinti Sai Rukmini</span>
+        </br>
+        <span class="fill-me">(CS25BTECH11059) Sri Harshita Pagudala</span>
+        </br>
+        <span class="fill-me">(CS25BTECH11055) Shrestha Saanvi</span>
+        </br>
+        <span class="fill-me">(CS25BTECH11021) Gorantla Sharanya Krishna</span>
+        </br>
+        <span class="fill-me">(CS25BTECH11006) Avi Singh</span>
+      </p>
+      <p>Course: <span class="fill-me">(EE1202) Digital Circuits </span></p>
+      <p>Campus: <span class="fill-me">Indian Institute of Technology Hyderabad (IITH)</span></p>
+    </div>
+
+    <div class="footer-meta">
+      <h4>Reference</h4>
+      <p>Built for the assignment brief modeled on
+        <a href="https://booleanmaster.com/tools/truth-table-to-boolean-expression" target="_blank" rel="noopener noreferrer">booleanmaster.com</a>.
+      </p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="footer-year"></span> BOOL( ) CIRCUIT. Built for educational use.</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
